@@ -1,139 +1,121 @@
-import { useState, useCallback, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps';
-import { AirportMarker } from './components/AirportMarker';
-import { RestaurantPopup } from './components/RestaurantPopup';
-import { useRestaurants } from './hooks/useRestaurants';
+import { useState, useEffect, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import AIRPORTS from './data/airports';
+import { useRestaurants } from './hooks/useRestaurants';
+import { DetailPanel } from './components/DetailPanel';
 
-const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? '';
+const VERSION = 'v2.20260627.1';
 
-// Fit the map to show every airfield in the list on first load.
-function FitBounds() {
+const STATUS_COLOR = {
+  yes: '#2e7d32',
+  no: '#c62828',
+  error: '#f9a825',
+  loading: '#9e9e9e',
+};
+
+function pinIcon(color) {
+  return L.divIcon({
+    className: 'airfield-pin',
+    html: `<svg width="26" height="36" viewBox="0 0 26 36" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13 0C5.82 0 0 5.82 0 13c0 9.5 13 23 13 23s13-13.5 13-23C26 5.82 20.18 0 13 0z" fill="${color}" stroke="#fff" stroke-width="1.5"/>
+      <circle cx="13" cy="13" r="4.5" fill="#fff"/>
+    </svg>`,
+    iconSize: [26, 36],
+    iconAnchor: [13, 36],
+  });
+}
+
+function FitToAirports() {
   const map = useMap();
   useEffect(() => {
-    if (!map || AIRPORTS.length === 0) return;
-    const bounds = new window.google.maps.LatLngBounds();
-    AIRPORTS.forEach((a) => bounds.extend({ lat: a.lat, lng: a.lng }));
-    map.fitBounds(bounds, 64);
+    if (AIRPORTS.length === 0) return;
+    const bounds = L.latLngBounds(AIRPORTS.map((a) => [a.lat, a.lng]));
+    map.fitBounds(bounds, { padding: [60, 60] });
   }, [map]);
   return null;
 }
 
-// Must live inside <Map> so useMap() works.
-function MapContents({ selected, onMarkerClick, onClose }) {
-  const results = useRestaurants();
-
+function LegendDot({ color, label }) {
   return (
-    <>
-      <FitBounds />
-      {AIRPORTS.map((airport) => (
-        <AirportMarker
-          key={airport.icao}
-          airport={airport}
-          status={results[airport.icao]?.status ?? 'loading'}
-          onClick={onMarkerClick}
-        />
-      ))}
-      {selected &&
-        createPortal(
-          <RestaurantPopup
-            airport={selected}
-            entry={results[selected.icao]}
-            onClose={onClose}
-          />,
-          document.body,
-        )}
-    </>
+    <span className="flex items-center gap-1.5">
+      <span className="w-3 h-3 rounded-full inline-block" style={{ background: color }} />
+      {label}
+    </span>
   );
 }
 
 export default function App() {
   const [selected, setSelected] = useState(null);
+  const data = useRestaurants();
 
-  const handleMarkerClick = useCallback((airport) => setSelected(airport), []);
   const handleClose = useCallback(() => setSelected(null), []);
-
-  if (!API_KEY) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <div className="max-w-sm text-center p-8 bg-white rounded-2xl shadow-lg border border-red-200">
-          <div className="text-4xl mb-4">🗝️</div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">API Key Required</h1>
-          <p className="text-gray-600 text-sm">
-            Copy <code className="bg-gray-100 px-1 rounded">.env.example</code> to{' '}
-            <code className="bg-gray-100 px-1 rounded">.env</code> and add your{' '}
-            <strong>VITE_GOOGLE_MAPS_API_KEY</strong>.
-          </p>
-          <p className="text-gray-500 text-xs mt-3">
-            Enable these in Google Cloud Console:
-            <br />Maps JavaScript API · Places API
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-screen flex flex-col">
       {/* Header */}
-      <header className="shrink-0 bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between shadow-sm z-10">
+      <header className="shrink-0 bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between shadow-sm z-[1100]">
         <div className="flex items-center gap-3">
           <span className="text-2xl">✈️</span>
           <div>
-            <h1 className="text-base font-bold text-gray-900 leading-tight">Fly-in Dining <span className="text-gray-400 font-normal text-xs">v2.2330</span></h1>
-            <p className="text-xs text-gray-500">GA airfields with a restaurant within a 15-min walk</p>
+            <h1 className="text-base font-bold text-gray-900 leading-tight">
+              Fly-in Dining <span className="text-gray-400 font-normal text-xs">{VERSION}</span>
+            </h1>
+            <p className="text-xs text-gray-500">
+              GA airfields with a restaurant within a 15-min walk
+              {data.generatedAt && (
+                <span className="text-gray-400">
+                  {' '}· updated {new Date(data.generatedAt).toLocaleDateString()}
+                </span>
+              )}
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-xs text-gray-600">
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-green-500 inline-block" />
-            Has restaurants
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-red-500 inline-block" />
-            None found
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-yellow-400 inline-block" />
-            API error
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-gray-400 inline-block" />
-            Checking…
-          </span>
-          <button
-            className="text-xs text-gray-400 hover:text-gray-700 underline ml-2"
-            onClick={() => {
-              Object.keys(localStorage)
-                .filter((k) => k.startsWith('rzflight_restaurants_'))
-                .forEach((k) => localStorage.removeItem(k));
-              window.location.reload();
-            }}
-          >
-            Clear cache
-          </button>
+        <div className="hidden sm:flex items-center gap-4 text-xs text-gray-600">
+          <LegendDot color={STATUS_COLOR.yes} label="Has restaurants" />
+          <LegendDot color={STATUS_COLOR.no} label="None found" />
+          <LegendDot color={STATUS_COLOR.loading} label="No data" />
         </div>
       </header>
 
       {/* Map */}
-      <div className="flex-1">
-        <APIProvider apiKey={API_KEY} libraries={['places']}>
-          <Map
-            mapId="france-airports-map"
-            defaultCenter={{ lat: 46.6, lng: 2.3 }}
-            defaultZoom={6}
-            gestureHandling="greedy"
-            className="w-full h-full"
-            onClick={handleClose}
-          >
-            <MapContents
-              selected={selected}
-              onMarkerClick={handleMarkerClick}
-              onClose={handleClose}
-            />
-          </Map>
-        </APIProvider>
+      <div className="flex-1 relative">
+        <MapContainer
+          className="absolute inset-0"
+          center={[48.5, 1.5]}
+          zoom={6}
+          scrollWheelZoom
+        >
+          <TileLayer
+            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            subdomains="abcd"
+            maxZoom={20}
+          />
+          <FitToAirports />
+          {AIRPORTS.map((airport) => {
+            const status = data.loading
+              ? 'loading'
+              : data.airports[airport.icao]?.status ?? 'loading';
+            return (
+              <Marker
+                key={airport.icao}
+                position={[airport.lat, airport.lng]}
+                icon={pinIcon(STATUS_COLOR[status] ?? STATUS_COLOR.loading)}
+                eventHandlers={{ click: () => setSelected(airport) }}
+              />
+            );
+          })}
+        </MapContainer>
+
+        {selected && (
+          <DetailPanel
+            airport={selected}
+            entry={data.airports[selected.icao]}
+            onClose={handleClose}
+          />
+        )}
       </div>
     </div>
   );
