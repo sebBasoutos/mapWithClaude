@@ -11,6 +11,22 @@ const FOOD_TYPES = [
   'sandwich_shop', 'fast_food_restaurant', 'pizza_restaurant', 'french_restaurant',
 ];
 
+// A place is kept only if its PRIMARY type is food-related. This drops venues
+// that merely carry a food tag (e.g. a barber with a wine bar, a garden-centre
+// café, a karaoke bar) while keeping restaurants, cafés, pubs, bakeries, etc.
+const FOOD_PRIMARY = new Set([
+  'cafe', 'coffee_shop', 'bakery', 'bar', 'pub', 'bistro', 'diner',
+  'sandwich_shop', 'ice_cream_shop', 'wine_bar', 'food_court', 'tea_house',
+  'dessert_shop', 'donut_shop', 'bagel_shop', 'meal_takeaway', 'meal_delivery',
+  'confectionery', 'breakfast_restaurant', 'brunch_restaurant',
+]);
+
+function isFoodPrimary(primaryType) {
+  if (!primaryType) return false;
+  if (primaryType === 'restaurant' || primaryType.endsWith('_restaurant')) return true;
+  return FOOD_PRIMARY.has(primaryType);
+}
+
 const PRICE_MAP = {
   PRICE_LEVEL_FREE: 0,
   PRICE_LEVEL_INEXPENSIVE: 1,
@@ -26,7 +42,7 @@ async function searchNearby(airport) {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': KEY,
       'X-Goog-FieldMask':
-        'places.id,places.displayName,places.rating,places.userRatingCount,places.priceLevel,places.formattedAddress,places.location,places.types',
+        'places.id,places.displayName,places.rating,places.userRatingCount,places.priceLevel,places.formattedAddress,places.location,places.types,places.primaryType',
     },
     body: JSON.stringify({
       includedTypes: FOOD_TYPES,
@@ -104,7 +120,8 @@ async function walkTimes(originWaypoint, places) {
 }
 
 export async function refreshAirport(airport) {
-  const places = await searchNearby(airport);
+  const all = await searchNearby(airport);
+  const places = all.filter((p) => isFoodPrimary(p.primaryType));
   if (places.length === 0) return { status: 'no', places: [] };
 
   const origin = await findAirportOrigin(airport);
