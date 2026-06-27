@@ -20,7 +20,7 @@ function PlaceItem({ place }) {
           href={`https://www.google.com/maps/place/?q=place_id:${place.placeId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="font-medium text-[#2d6db5] hover:underline text-sm leading-tight"
+          className="font-medium text-brand hover:underline text-sm leading-tight"
         >
           {place.name}
         </a>
@@ -64,7 +64,7 @@ export function DetailPanel({ airport, entry, onClose }) {
           ×
         </button>
         <h2 className="text-2xl font-bold text-gray-900 leading-none">{airport.icao}</h2>
-        <p className="text-sm font-semibold tracking-wide text-[#2d6db5] uppercase mt-1">
+        <p className="text-sm font-semibold tracking-wide text-brand uppercase mt-1">
           {airport.name}
         </p>
         <p className="text-xs text-gray-400 mt-1">
@@ -78,13 +78,13 @@ export function DetailPanel({ airport, entry, onClose }) {
           <>
             {restaurants.length > 0 && (
               <section className="mb-4">
-                <h3 className="text-sm font-semibold italic text-[#2d6db5] mb-1">Restaurants</h3>
+                <h3 className="text-sm font-semibold italic text-brand mb-1">Restaurants</h3>
                 <ul>{restaurants.map((p) => <PlaceItem key={p.placeId} place={p} />)}</ul>
               </section>
             )}
             {bakeries.length > 0 && (
               <section>
-                <h3 className="text-sm font-semibold italic text-[#2d6db5] mb-1">Bakeries</h3>
+                <h3 className="text-sm font-semibold italic text-brand mb-1">Bakeries</h3>
                 <ul>{bakeries.map((p) => <PlaceItem key={p.placeId} place={p} />)}</ul>
               </section>
             )}

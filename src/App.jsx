@@ -6,24 +6,25 @@ import AIRPORTS from './data/airports';
 import { useRestaurants } from './hooks/useRestaurants';
 import { DetailPanel } from './components/DetailPanel';
 
-const VERSION = 'v2.20260627.1';
+const VERSION = 'v2.20260627.2';
 
 const STATUS_COLOR = {
-  yes: '#2e7d32',
+  yes: '#007dbb',
   no: '#c62828',
   error: '#f9a825',
   loading: '#9e9e9e',
 };
 
+// Classic Leaflet teardrop marker (matches frenchcustoms), tinted by status.
 function pinIcon(color) {
   return L.divIcon({
     className: 'airfield-pin',
-    html: `<svg width="26" height="36" viewBox="0 0 26 36" xmlns="http://www.w3.org/2000/svg">
-      <path d="M13 0C5.82 0 0 5.82 0 13c0 9.5 13 23 13 23s13-13.5 13-23C26 5.82 20.18 0 13 0z" fill="${color}" stroke="#fff" stroke-width="1.5"/>
-      <circle cx="13" cy="13" r="4.5" fill="#fff"/>
+    html: `<svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12.5 0C5.6 0 0 5.6 0 12.5 0 21.9 12.5 41 12.5 41S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0z" fill="${color}" stroke="#ffffff" stroke-width="1.5"/>
+      <circle cx="12.5" cy="12.5" r="4.5" fill="#ffffff"/>
     </svg>`,
-    iconSize: [26, 36],
-    iconAnchor: [13, 36],
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
   });
 }
 
