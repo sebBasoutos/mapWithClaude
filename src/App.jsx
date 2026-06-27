@@ -81,7 +81,7 @@ export default function App() {
         <div className="flex items-center gap-3">
           <span className="text-2xl">✈️</span>
           <div>
-            <h1 className="text-base font-bold text-gray-900 leading-tight">Fly-in Dining <span className="text-gray-400 font-normal text-xs">v2.2320</span></h1>
+            <h1 className="text-base font-bold text-gray-900 leading-tight">Fly-in Dining <span className="text-gray-400 font-normal text-xs">v2.2330</span></h1>
             <p className="text-xs text-gray-500">GA airfields with a restaurant within a 15-min walk</p>
           </div>
         </div>

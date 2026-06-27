@@ -83,14 +83,12 @@ async function findAirportWaypoint(placesLib, airport) {
       rankPreference: 'DISTANCE',
     });
     if (places[0]?.id) {
-      console.log(`[Origin] ${airport.icao}: routing from place "${places[0].displayName}" (${places[0].id})`);
       return { placeId: places[0].id };
     }
   } catch (err) {
     console.warn(`[Origin] ${airport.icao}: airport place lookup failed`, err);
   }
   // Fallback: runway reference point.
-  console.log(`[Origin] ${airport.icao}: routing from runway coordinates (no airport place found)`);
   return { location: { latLng: { latitude: airport.lat, longitude: airport.lng } } };
 }
 
@@ -177,11 +175,6 @@ export function useRestaurants() {
                   .sort((a, b) => (a.walkingSeconds ?? 1e9) - (b.walkingSeconds ?? 1e9))
                   .slice(0, 10);
 
-                console.log(`[Places] ${airport.icao}: ${places.length} candidates from Places API`);
-                withWalk.forEach((p) =>
-                  console.log(`  ${p.walkingSeconds != null ? p.walkingSeconds + 's' : 'no route'}  ${p.name}`),
-                );
-                console.log(`[Places] ${airport.icao}: ${walkable.length} kept (apiWorked=${apiWorked})`);
                 return { status: walkable.length > 0 ? 'yes' : 'no', places: walkable };
               })
               .catch((err) => {
