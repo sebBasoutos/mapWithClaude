@@ -1,4 +1,5 @@
 const PRICE = ['', '€', '€€', '€€€', '€€€€'];
+const BAKERY_TYPES = new Set(['bakery', 'pastry_shop']);
 
 function Stars({ rating }) {
   if (rating == null) return <span className="text-gray-400 text-xs">No rating</span>;
@@ -11,10 +12,45 @@ function Stars({ rating }) {
   );
 }
 
+function PlaceItem({ place }) {
+  return (
+    <li className="px-5 py-3 hover:bg-gray-50 transition-colors">
+      <div className="flex items-start justify-between gap-2">
+        <a
+          href={`https://www.google.com/maps/place/?q=place_id:${place.placeId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-blue-700 hover:underline text-sm leading-tight"
+        >
+          {place.name}
+        </a>
+        <div className="flex items-center gap-2 shrink-0">
+          {place.walkingMinutes != null && (
+            <span className="text-xs text-gray-500">🚶 {place.walkingMinutes} min</span>
+          )}
+          {place.priceLevel != null && (
+            <span className="text-xs text-gray-500 font-mono">{PRICE[place.priceLevel]}</span>
+          )}
+        </div>
+      </div>
+      <div className="mt-1 flex items-center gap-2 flex-wrap">
+        <Stars rating={place.rating} />
+        {place.userRatingsTotal > 0 && (
+          <span className="text-xs text-gray-400">({place.userRatingsTotal.toLocaleString()})</span>
+        )}
+      </div>
+      {place.vicinity && (
+        <p className="text-xs text-gray-400 mt-0.5 truncate">{place.vicinity}</p>
+      )}
+    </li>
+  );
+}
+
 export function RestaurantPopup({ airport, entry, onClose }) {
   if (!airport) return null;
 
-  const hasRestaurants = entry?.status === 'yes';
+  const restaurants = (entry?.places ?? []).filter((p) => !p.types?.some((t) => BAKERY_TYPES.has(t)));
+  const bakeries = (entry?.places ?? []).filter((p) => p.types?.some((t) => BAKERY_TYPES.has(t)));
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 pointer-events-none">
@@ -52,46 +88,43 @@ export function RestaurantPopup({ airport, entry, onClose }) {
             <>
               <span className="w-3 h-3 rounded-full bg-green-500" />
               <span className="text-sm font-medium text-green-700">
-                {entry.places.length} restaurant{entry.places.length !== 1 ? 's' : ''} within 1 km
+                {entry.places.length} place{entry.places.length !== 1 ? 's' : ''} within 15 min walk
               </span>
             </>
           )}
           {entry?.status === 'no' && (
             <>
               <span className="w-3 h-3 rounded-full bg-red-500" />
-              <span className="text-sm font-medium text-red-700">No restaurants found within 1 km</span>
+              <span className="text-sm font-medium text-red-700">Nothing found within 15 min walk</span>
             </>
           )}
         </div>
 
-        {/* Restaurant list */}
-        {hasRestaurants && (
-          <ul className="divide-y divide-gray-100 max-h-72 overflow-y-auto">
-            {entry.places.map((place) => (
-              <li key={place.placeId} className="px-5 py-3 hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="font-medium text-gray-900 text-sm leading-tight">{place.name}</p>
-                  {place.priceLevel != null && (
-                    <span className="text-xs text-gray-500 shrink-0 font-mono">{PRICE[place.priceLevel]}</span>
-                  )}
-                </div>
-                <div className="mt-1 flex items-center gap-2 flex-wrap">
-                  <Stars rating={place.rating} />
-                  {place.userRatingsTotal > 0 && (
-                    <span className="text-xs text-gray-400">({place.userRatingsTotal.toLocaleString()})</span>
-                  )}
-                </div>
-                {place.vicinity && (
-                  <p className="text-xs text-gray-400 mt-0.5 truncate">{place.vicinity}</p>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+        {/* Lists */}
+        <div className="max-h-80 overflow-y-auto">
+          {restaurants.length > 0 && (
+            <>
+              {bakeries.length > 0 && (
+                <p className="px-5 pt-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Restaurants</p>
+              )}
+              <ul className="divide-y divide-gray-100">
+                {restaurants.map((place) => <PlaceItem key={place.placeId} place={place} />)}
+              </ul>
+            </>
+          )}
+          {bakeries.length > 0 && (
+            <>
+              <p className="px-5 pt-3 text-xs font-semibold text-gray-400 uppercase tracking-wider border-t border-gray-100">Bakeries</p>
+              <ul className="divide-y divide-gray-100">
+                {bakeries.map((place) => <PlaceItem key={place.placeId} place={place} />)}
+              </ul>
+            </>
+          )}
+        </div>
 
         {/* Footer */}
         <div className="px-5 py-3 bg-gray-50 text-xs text-gray-400 text-right">
-          Data via Google Places · 1 km walking radius
+          Data via Google Places · walking distance
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { APIProvider, Map } from '@vis.gl/react-google-maps';
+import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps';
 import { AirportMarker } from './components/AirportMarker';
 import { RestaurantPopup } from './components/RestaurantPopup';
 import { useRestaurants } from './hooks/useRestaurants';
@@ -8,12 +8,25 @@ import AIRPORTS from './data/airports';
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY ?? '';
 
+// Fit the map to show every airfield in the list on first load.
+function FitBounds() {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || AIRPORTS.length === 0) return;
+    const bounds = new window.google.maps.LatLngBounds();
+    AIRPORTS.forEach((a) => bounds.extend({ lat: a.lat, lng: a.lng }));
+    map.fitBounds(bounds, 64);
+  }, [map]);
+  return null;
+}
+
 // Must live inside <Map> so useMap() works.
 function MapContents({ selected, onMarkerClick, onClose }) {
   const results = useRestaurants();
 
   return (
     <>
+      <FitBounds />
       {AIRPORTS.map((airport) => (
         <AirportMarker
           key={airport.icao}
@@ -68,8 +81,8 @@ export default function App() {
         <div className="flex items-center gap-3">
           <span className="text-2xl">✈️</span>
           <div>
-            <h1 className="text-base font-bold text-gray-900 leading-tight">France Airports</h1>
-            <p className="text-xs text-gray-500">Restaurants within 1 km walking distance</p>
+            <h1 className="text-base font-bold text-gray-900 leading-tight">Fly-in Dining <span className="text-gray-400 font-normal text-xs">v2.2320</span></h1>
+            <p className="text-xs text-gray-500">GA airfields with a restaurant within a 15-min walk</p>
           </div>
         </div>
         <div className="flex items-center gap-4 text-xs text-gray-600">
@@ -82,9 +95,24 @@ export default function App() {
             None found
           </span>
           <span className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded-full bg-yellow-400 inline-block" />
+            API error
+          </span>
+          <span className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-full bg-gray-400 inline-block" />
             Checking…
           </span>
+          <button
+            className="text-xs text-gray-400 hover:text-gray-700 underline ml-2"
+            onClick={() => {
+              Object.keys(localStorage)
+                .filter((k) => k.startsWith('rzflight_restaurants_'))
+                .forEach((k) => localStorage.removeItem(k));
+              window.location.reload();
+            }}
+          >
+            Clear cache
+          </button>
         </div>
       </header>
 
