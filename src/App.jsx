@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import AIRPORTS from './data/airports';
 import { useRestaurants } from './hooks/useRestaurants';
 import { DetailPanel } from './components/DetailPanel';
 
-const VERSION = 'v2.20260627.3';
+const VERSION = 'v2.20260627.4';
 
 const STATUS_COLOR = {
   yes: '#007dbb',
@@ -14,19 +14,6 @@ const STATUS_COLOR = {
   error: '#f9a825',
   loading: '#9e9e9e',
 };
-
-// Classic Leaflet teardrop marker (matches frenchcustoms), tinted by status.
-function pinIcon(color) {
-  return L.divIcon({
-    className: 'airfield-pin',
-    html: `<svg width="25" height="41" viewBox="0 0 25 41" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12.5 0C5.6 0 0 5.6 0 12.5 0 21.9 12.5 41 12.5 41S25 21.9 25 12.5C25 5.6 19.4 0 12.5 0z" fill="${color}" stroke="#ffffff" stroke-width="1.5"/>
-      <circle cx="12.5" cy="12.5" r="4.5" fill="#ffffff"/>
-    </svg>`,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-  });
-}
 
 function FitToAirports() {
   const map = useMap();
@@ -100,10 +87,16 @@ export default function App() {
               ? 'loading'
               : data.airports[airport.icao]?.status ?? 'loading';
             return (
-              <Marker
+              <CircleMarker
                 key={airport.icao}
-                position={[airport.lat, airport.lng]}
-                icon={pinIcon(STATUS_COLOR[status] ?? STATUS_COLOR.loading)}
+                center={[airport.lat, airport.lng]}
+                radius={7}
+                pathOptions={{
+                  color: '#ffffff',
+                  weight: 2,
+                  fillColor: STATUS_COLOR[status] ?? STATUS_COLOR.loading,
+                  fillOpacity: 1,
+                }}
                 eventHandlers={{ click: () => setSelected(airport) }}
               />
             );
