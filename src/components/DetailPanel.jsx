@@ -1,6 +1,14 @@
 const PRICE = ['', '€', '€€', '€€€', '€€€€'];
 const BAKERY_TYPES = new Set(['bakery', 'pastry_shop']);
 
+function Badge({ children }) {
+  return (
+    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-brand border border-blue-100">
+      {children}
+    </span>
+  );
+}
+
 function Stars({ rating }) {
   if (rating == null) return <span className="text-gray-400 text-xs">No rating</span>;
   const full = Math.round(rating);
@@ -70,6 +78,15 @@ export function DetailPanel({ airport, entry, onClose }) {
         <p className="text-xs text-gray-400 mt-1">
           {airport.lat.toFixed(4)}°, {airport.lng.toFixed(4)}°
         </p>
+
+        {/* Airfield attributes */}
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {airport.runwayM != null && <Badge>{airport.runwayM} m</Badge>}
+          {airport.ifr && <Badge>IFR</Badge>}
+          {airport.customs && <Badge>Customs</Badge>}
+          {airport.avgas && <Badge>AVGAS</Badge>}
+          {airport.jet && <Badge>Jet A1</Badge>}
+        </div>
       </div>
 
       {/* Body */}

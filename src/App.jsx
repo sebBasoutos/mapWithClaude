@@ -7,7 +7,16 @@ import { useRestaurants } from './hooks/useRestaurants';
 import { DetailPanel } from './components/DetailPanel';
 import { SearchPanel } from './components/SearchPanel';
 
-const VERSION = 'v2.20260628.5';
+const VERSION = 'v2.20260628.6';
+
+const DEFAULT_FILTERS = {
+  status: 'all', // restaurants: all | yes | no
+  minRunway: 0, // metres
+  avgas: false,
+  jet: false,
+  customs: false,
+  ifr: false,
+};
 
 const STATUS_COLOR = {
   yes: '#007dbb',
@@ -52,7 +61,7 @@ function LegendDot({ color, label }) {
 export default function App() {
   const [selected, setSelected] = useState(null);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const data = useRestaurants();
 
   const filtered = useMemo(() => {
@@ -64,12 +73,17 @@ export default function App() {
       }
       // restaurant-status filter
       const status = data.airports[a.icao]?.status;
-      if (statusFilter === 'yes' && status !== 'yes') return false;
-      if (statusFilter === 'no' && status !== 'no') return false;
-      // (add more filters here as the data grows, e.g. runway length)
+      if (filters.status === 'yes' && status !== 'yes') return false;
+      if (filters.status === 'no' && status !== 'no') return false;
+      // airfield attribute filters
+      if (filters.minRunway && (a.runwayM ?? 0) < filters.minRunway) return false;
+      if (filters.avgas && !a.avgas) return false;
+      if (filters.jet && !a.jet) return false;
+      if (filters.customs && !a.customs) return false;
+      if (filters.ifr && !a.ifr) return false;
       return true;
     });
-  }, [search, statusFilter, data]);
+  }, [search, filters, data]);
 
   const handleClose = useCallback(() => setSelected(null), []);
   const handleSelect = useCallback((a) => setSelected(a), []);
@@ -139,8 +153,9 @@ export default function App() {
             data={data}
             search={search}
             setSearch={setSearch}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
+            filters={filters}
+            setFilters={setFilters}
+            defaultFilters={DEFAULT_FILTERS}
             selected={selected}
             onSelect={handleSelect}
           />
