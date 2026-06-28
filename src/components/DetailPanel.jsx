@@ -1,6 +1,19 @@
 const PRICE = ['', '€', '€€', '€€€', '€€€€'];
 const BAKERY_TYPES = new Set(['bakery', 'pastry_shop']);
 
+function LinkPill({ href, children }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="px-3 py-1.5 rounded-full bg-brand text-white text-xs font-medium hover:bg-brand-dark transition-colors"
+    >
+      {children} ↗
+    </a>
+  );
+}
+
 function Badge({ children }) {
   return (
     <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-brand border border-blue-100">
@@ -89,15 +102,16 @@ export function DetailPanel({ airport, entry, onClose }) {
         </div>
 
         {/* External links */}
-        <div className="mt-3">
-          <a
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          {airport.icao.startsWith('LF') && (
+            <LinkPill href="https://www.sia.aviation-civile.gouv.fr/atlas-vac.html">VAC</LinkPill>
+          )}
+          <LinkPill href={`https://skyvector.com/airport/${airport.icao}`}>AIP</LinkPill>
+          <LinkPill
             href={`https://www.notams.faa.gov/dinsQueryWeb/queryRetrievalMapAction.do?reportType=Raw&retrieveLocId=${airport.icao}&actionType=notamRetrievalByICAOs`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-3 py-1.5 rounded-full bg-brand text-white text-xs font-medium hover:bg-brand-dark transition-colors"
           >
-            NOTAMs ↗
-          </a>
+            NOTAMs
+          </LinkPill>
         </div>
       </div>
 
