@@ -7,7 +7,7 @@ import { useRestaurants } from './hooks/useRestaurants';
 import { DetailPanel } from './components/DetailPanel';
 import { SearchPanel } from './components/SearchPanel';
 
-const VERSION = 'v2.20260628.6';
+const VERSION = 'v2.20260628.7';
 
 const DEFAULT_FILTERS = {
   status: 'all', // restaurants: all | yes | no

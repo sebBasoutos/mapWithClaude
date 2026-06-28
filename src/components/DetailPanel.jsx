@@ -87,6 +87,18 @@ export function DetailPanel({ airport, entry, onClose }) {
           {airport.avgas && <Badge>AVGAS</Badge>}
           {airport.jet && <Badge>Jet A1</Badge>}
         </div>
+
+        {/* External links */}
+        <div className="mt-3">
+          <a
+            href={`https://www.notams.faa.gov/dinsQueryWeb/queryRetrievalMapAction.do?reportType=Raw&retrieveLocId=${airport.icao}&actionType=notamRetrievalByICAOs`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-block px-3 py-1.5 rounded-full bg-brand text-white text-xs font-medium hover:bg-brand-dark transition-colors"
+          >
+            NOTAMs ↗
+          </a>
+        </div>
       </div>
 
       {/* Body */}
