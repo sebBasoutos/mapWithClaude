@@ -107,11 +107,7 @@ export function DetailPanel({ airport, entry, onClose }) {
             <LinkPill href="https://www.sia.aviation-civile.gouv.fr/atlas-vac.html">VAC</LinkPill>
           )}
           <LinkPill href={`https://skyvector.com/airport/${airport.icao}`}>AIP</LinkPill>
-          <LinkPill
-            href={`https://www.notams.faa.gov/dinsQueryWeb/queryRetrievalMapAction.do?reportType=Raw&retrieveLocId=${airport.icao}&actionType=notamRetrievalByICAOs`}
-          >
-            NOTAMs
-          </LinkPill>
+          <LinkPill href="https://notams.aim.faa.gov/notamSearch/">NOTAMs</LinkPill>
         </div>
       </div>
 
