@@ -40,17 +40,18 @@ export function Sidebar({
         </div>
       </div>
 
-      {/* Result count */}
-      <div className="px-3 py-2 text-xs text-gray-400 border-b border-gray-100">
-        {airports.length} of {totalCount} airfields
-      </div>
+      {/* Results — only while searching */}
+      {search.trim() && (
+        <>
+          <div className="px-3 py-2 text-xs text-gray-400 border-b border-gray-100">
+            {airports.length} of {totalCount} airfields
+          </div>
 
-      {/* Results list */}
-      <ul className="flex-1 overflow-y-auto">
-        {airports.length === 0 && (
-          <li className="px-3 py-4 text-sm text-gray-400">No matches</li>
-        )}
-        {airports.map((a) => {
+          <ul className="flex-1 overflow-y-auto">
+            {airports.length === 0 && (
+              <li className="px-3 py-4 text-sm text-gray-400">No matches</li>
+            )}
+            {airports.map((a) => {
           const entry = data.airports[a.icao];
           const status = entry?.status;
           const count = entry?.places?.length;
@@ -76,9 +77,11 @@ export function Sidebar({
                 )}
               </button>
             </li>
-          );
-        })}
-      </ul>
+              );
+            })}
+          </ul>
+        </>
+      )}
     </aside>
   );
 }

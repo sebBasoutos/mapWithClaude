@@ -7,7 +7,7 @@ import { useRestaurants } from './hooks/useRestaurants';
 import { DetailPanel } from './components/DetailPanel';
 import { Sidebar } from './components/Sidebar';
 
-const VERSION = 'v2.20260628.3';
+const VERSION = 'v2.20260628.4';
 
 const STATUS_COLOR = {
   yes: '#007dbb',
