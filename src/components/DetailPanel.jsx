@@ -1,5 +1,15 @@
+import { useNotams } from '../hooks/useNotams';
+
 const PRICE = ['', '€', '€€', '€€€', '€€€€'];
 const BAKERY_TYPES = new Set(['bakery', 'pastry_shop']);
+
+const FAA_NOTAM_SEARCH = 'https://notams.aim.faa.gov/notamSearch/';
+
+function fmtDate(dt) {
+  if (!dt) return '';
+  const d = new Date(dt);
+  return isNaN(d.getTime()) ? dt : d.toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+}
 
 function LinkPill({ href, children }) {
   return (
@@ -65,6 +75,46 @@ function PlaceItem({ place }) {
   );
 }
 
+function NotamsSection({ icao }) {
+  const { loading, notams, error } = useNotams(icao);
+  const fallback = (
+    <a className="text-brand hover:underline" href={FAA_NOTAM_SEARCH} target="_blank" rel="noopener noreferrer">
+      FAA NOTAM Search ↗
+    </a>
+  );
+
+  return (
+    <section className="mt-5 pt-4 border-t border-gray-100">
+      <h3 className="text-sm font-semibold italic text-brand mb-2">NOTAMs</h3>
+      {loading && <p className="text-sm text-gray-400">Loading NOTAMs…</p>}
+      {!loading && error === 'not_configured' && (
+        <p className="text-sm text-gray-500">NOTAM service not configured. {fallback}</p>
+      )}
+      {!loading && error && error !== 'not_configured' && (
+        <p className="text-sm text-yellow-700">Couldn’t load NOTAMs. {fallback}</p>
+      )}
+      {!loading && !error && notams.length === 0 && (
+        <p className="text-sm text-gray-500">No current NOTAMs.</p>
+      )}
+      {!loading && !error && notams.length > 0 && (
+        <ul className="space-y-2">
+          {notams.map((n, i) => (
+            <li key={n.number || i}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-xs font-semibold text-gray-700">{n.number}</span>
+                {n.end && <span className="text-xs text-gray-400">until {fmtDate(n.end)}</span>}
+              </div>
+              <pre className="mt-0.5 whitespace-pre-wrap font-mono text-[11px] text-gray-600 leading-snug">
+                {n.text}
+              </pre>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 export function DetailPanel({ airport, entry, onClose }) {
   if (!airport) return null;
 
@@ -107,7 +157,6 @@ export function DetailPanel({ airport, entry, onClose }) {
             <LinkPill href="https://www.sia.aviation-civile.gouv.fr/atlas-vac.html">VAC</LinkPill>
           )}
           <LinkPill href={`https://skyvector.com/airport/${airport.icao}`}>AIP</LinkPill>
-          <LinkPill href="https://notams.aim.faa.gov/notamSearch/">NOTAMs</LinkPill>
         </div>
       </div>
 
@@ -136,6 +185,8 @@ export function DetailPanel({ airport, entry, onClose }) {
           <p className="text-sm text-yellow-700">Couldn’t fetch data for this airfield.</p>
         )}
         {!status && <p className="text-sm text-gray-400">No data yet — run a refresh in the admin panel.</p>}
+
+        <NotamsSection icao={airport.icao} />
       </div>
     </div>
   );
