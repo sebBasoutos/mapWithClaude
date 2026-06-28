@@ -5,7 +5,7 @@ import { store, RESTAURANTS_KEY } from './_lib/store.js';
 export default async function handler(req, res) {
   try {
     const data = await store.get(RESTAURANTS_KEY);
-    res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=86400');
+    res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=60');
     res.status(200).json(data ?? { generatedAt: null, airports: {} });
   } catch (e) {
     res.status(500).json({ error: String(e?.message || e) });

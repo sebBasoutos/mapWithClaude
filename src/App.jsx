@@ -6,7 +6,7 @@ import AIRPORTS from './data/airports';
 import { useRestaurants } from './hooks/useRestaurants';
 import { DetailPanel } from './components/DetailPanel';
 
-const VERSION = 'v2.20260628.1';
+const VERSION = 'v2.20260628.2';
 
 const STATUS_COLOR = {
   yes: '#007dbb',

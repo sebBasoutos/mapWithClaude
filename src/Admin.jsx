@@ -24,7 +24,7 @@ export default function Admin() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/restaurants');
+      const res = await fetch('/api/restaurants?cb=' + Date.now());
       setData(await res.json());
     } catch (e) {
       setMessage({ type: 'error', text: `Failed to load data: ${e.message}` });
