@@ -5,9 +5,9 @@ import 'leaflet/dist/leaflet.css';
 import AIRPORTS from './data/airports';
 import { useRestaurants } from './hooks/useRestaurants';
 import { DetailPanel } from './components/DetailPanel';
-import { Sidebar } from './components/Sidebar';
+import { SearchPanel } from './components/SearchPanel';
 
-const VERSION = 'v2.20260628.4';
+const VERSION = 'v2.20260628.5';
 
 const STATUS_COLOR = {
   yes: '#007dbb',
@@ -101,22 +101,9 @@ export default function App() {
         </div>
       </header>
 
-      {/* Body: sidebar + map */}
-      <div className="flex-1 flex min-h-0">
-        <Sidebar
-          airports={filtered}
-          totalCount={AIRPORTS.length}
-          data={data}
-          search={search}
-          setSearch={setSearch}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          selected={selected}
-          onSelect={handleSelect}
-        />
-
-        <div className="flex-1 relative">
-          <MapContainer className="absolute inset-0" center={[48.5, 1.5]} zoom={6} scrollWheelZoom>
+      {/* Body: full-width map with floating search overlay */}
+      <div className="flex-1 relative min-h-0">
+        <MapContainer className="absolute inset-0" center={[48.5, 1.5]} zoom={6} scrollWheelZoom>
             <TileLayer
               url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -146,6 +133,18 @@ export default function App() {
             })}
           </MapContainer>
 
+          <SearchPanel
+            airports={filtered}
+            totalCount={AIRPORTS.length}
+            data={data}
+            search={search}
+            setSearch={setSearch}
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            selected={selected}
+            onSelect={handleSelect}
+          />
+
           {selected && (
             <DetailPanel
               airport={selected}
@@ -153,7 +152,6 @@ export default function App() {
               onClose={handleClose}
             />
           )}
-        </div>
       </div>
     </div>
   );
