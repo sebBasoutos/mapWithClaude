@@ -27,6 +27,23 @@ function isFoodPrimary(primaryType) {
   return FOOD_PRIMARY.has(primaryType);
 }
 
+// Types that mean the venue isn't really a place to eat, even if it also carries
+// a food tag (e.g. a hair salon with a wine bar, a garden-centre café).
+const BLOCK_TYPES = new Set([
+  'hair_salon', 'barber_shop', 'beauty_salon', 'hair_care', 'nail_salon',
+  'body_art_service', 'spa', 'liquor_store', 'garden_center', 'gym',
+  'night_club', 'karaoke', 'supermarket', 'grocery_store', 'pharmacy',
+  'clothing_store', 'gas_station', 'car_repair',
+]);
+
+function hasBlockedType(types) {
+  return Array.isArray(types) && types.some((t) => BLOCK_TYPES.has(t));
+}
+
+function isDining(place) {
+  return isFoodPrimary(place.primaryType) && !hasBlockedType(place.types);
+}
+
 const PRICE_MAP = {
   PRICE_LEVEL_FREE: 0,
   PRICE_LEVEL_INEXPENSIVE: 1,
@@ -121,7 +138,7 @@ async function walkTimes(originWaypoint, places) {
 
 export async function refreshAirport(airport) {
   const all = await searchNearby(airport);
-  const places = all.filter((p) => isFoodPrimary(p.primaryType));
+  const places = all.filter(isDining);
   if (places.length === 0) return { status: 'no', places: [] };
 
   const origin = await findAirportOrigin(airport);
