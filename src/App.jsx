@@ -8,7 +8,7 @@ import { DetailPanel } from './components/DetailPanel';
 import { SearchPanel } from './components/SearchPanel';
 import { AskWidget } from './components/AskWidget';
 
-const VERSION = 'v2.20260702.5';
+const VERSION = 'v2.20260702.6';
 
 const DEFAULT_FILTERS = {
   status: 'all', // restaurants: all | yes | no
@@ -66,10 +66,12 @@ export default function App() {
   const data = useRestaurants();
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    // Accent-insensitive lowercase ("Ribérac" matches "riberac").
+    const fold = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const q = fold(search.trim());
     return AIRPORTS.filter((a) => {
       // text search: name or ICAO
-      if (q && !a.icao.toLowerCase().includes(q) && !a.name.toLowerCase().includes(q)) {
+      if (q && !fold(a.icao).includes(q) && !fold(a.name).includes(q)) {
         return false;
       }
       // restaurant-status filter

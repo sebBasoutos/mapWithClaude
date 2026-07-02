@@ -7,6 +7,11 @@ import { fetchNotams } from './notams.js';
 
 const BY_ICAO = new Map(AIRPORTS.map((a) => [a.icao, a]));
 
+// Accent-insensitive lowercase ("Ribérac" matches "riberac").
+function fold(s) {
+  return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
 function countryOf(icao) {
   if (icao.startsWith('LF')) return 'FR';
   if (icao.startsWith('EG')) return 'UK';
@@ -68,11 +73,11 @@ export const TOOL_DEFS = [
 // ---- Tool implementations ---------------------------------------------------
 
 async function toolSearchAirports(args) {
-  const q = String(args.query || '').trim().toLowerCase();
+  const q = fold(String(args.query || '').trim());
   const data = await getRestaurantData();
 
   const matches = AIRPORTS.filter((a) => {
-    if (q && !a.icao.toLowerCase().includes(q) && !a.name.toLowerCase().includes(q)) return false;
+    if (q && !fold(a.icao).includes(q) && !fold(a.name).includes(q)) return false;
     if (args.country && countryOf(a.icao) !== args.country) return false;
     if (args.min_runway_m != null && (a.runwayM == null || a.runwayM < args.min_runway_m)) return false;
     if (args.avgas && !a.avgas) return false;
