@@ -6,8 +6,9 @@ import AIRPORTS from './data/airports';
 import { useRestaurants } from './hooks/useRestaurants';
 import { DetailPanel } from './components/DetailPanel';
 import { SearchPanel } from './components/SearchPanel';
+import { AskWidget } from './components/AskWidget';
 
-const VERSION = 'v2.20260702.4';
+const VERSION = 'v2.20260702.5';
 
 const DEFAULT_FILTERS = {
   status: 'all', // restaurants: all | yes | no
@@ -159,6 +160,8 @@ export default function App() {
             selected={selected}
             onSelect={handleSelect}
           />
+
+          <AskWidget onSelect={handleSelect} />
 
           {selected && (
             <DetailPanel
