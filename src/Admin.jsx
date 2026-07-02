@@ -19,7 +19,10 @@ export default function Admin() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [progress, setProgress] = useState(null); // { done, total }
   const [message, setMessage] = useState(null);
+
+  const BATCH_LIMIT = 25;
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -44,24 +47,41 @@ export default function Admin() {
     }
     setRefreshing(true);
     setMessage(null);
+    setProgress({ done: 0, total: AIRPORTS.length });
+    const allErrors = [];
     try {
-      const res = await fetch('/api/refresh', {
-        method: 'POST',
-        headers: { 'x-admin-password': password },
-      });
-      const body = await res.json();
-      if (!res.ok) {
-        setMessage({ type: 'error', text: body.error || `Refresh failed (${res.status})` });
-      } else {
-        sessionStorage.setItem(PW_KEY, password);
-        const errNote = body.errors?.length ? ` · errors: ${body.errors.join(', ')}` : '';
-        setMessage({ type: 'success', text: `Refreshed ${body.count} airfields${errNote}` });
-        await loadData();
+      let offset = 0;
+      // Page through the airport list one slice at a time; each request stays
+      // well under the serverless timeout.
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const res = await fetch(`/api/refresh?offset=${offset}&limit=${BATCH_LIMIT}`, {
+          method: 'POST',
+          headers: { 'x-admin-password': password },
+        });
+        const body = await res.json();
+        if (!res.ok) {
+          setMessage({ type: 'error', text: body.error || `Refresh failed (${res.status})` });
+          return;
+        }
+        if (body.errors?.length) allErrors.push(...body.errors);
+        setProgress({ done: Math.min(body.nextOffset, body.total), total: body.total });
+        await loadData(); // reflect partial results in the table as we go
+        if (body.done) {
+          sessionStorage.setItem(PW_KEY, password);
+          const errNote = allErrors.length
+            ? ` · ${allErrors.length} error(s): ${allErrors.slice(0, 8).join(', ')}${allErrors.length > 8 ? '…' : ''}`
+            : '';
+          setMessage({ type: 'success', text: `Refreshed ${body.total} airfields${errNote}` });
+          break;
+        }
+        offset = body.nextOffset;
       }
     } catch (e) {
       setMessage({ type: 'error', text: e.message });
     } finally {
       setRefreshing(false);
+      setProgress(null);
     }
   }, [password, loadData]);
 
@@ -99,8 +119,22 @@ export default function Admin() {
             </button>
           </div>
           <p className="text-xs text-gray-400 mt-2">
-            Calls Google for all {AIRPORTS.length} airfields and stores the result. Takes ~10–30s.
+            Calls Google for all {AIRPORTS.length} airfields in batches of {BATCH_LIMIT} and stores
+            the result. Runs a few minutes — keep this tab open until it finishes.
           </p>
+          {progress && (
+            <div className="mt-3">
+              <div className="h-2 w-full rounded-full bg-gray-100 overflow-hidden">
+                <div
+                  className="h-full bg-blue-600 transition-all"
+                  style={{ width: `${Math.round((progress.done / progress.total) * 100)}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {progress.done} / {progress.total} airfields
+              </p>
+            </div>
+          )}
           {message && (
             <p className={`text-sm mt-3 ${message.type === 'error' ? 'text-red-600' : 'text-green-700'}`}>
               {message.text}

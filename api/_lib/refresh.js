@@ -168,14 +168,37 @@ export async function refreshAirport(airport) {
   return { status: walkable.length > 0 ? 'yes' : 'no', places: walkable };
 }
 
-export async function refreshAll() {
-  const airports = {};
-  for (const a of AIRPORTS) {
-    try {
-      airports[a.icao] = await refreshAirport(a);
-    } catch (e) {
-      airports[a.icao] = { status: 'error', places: [], error: String(e?.message || e) };
+export const TOTAL_AIRPORTS = AIRPORTS.length;
+
+// Run `fn` over `items` with at most `limit` in flight at once.
+async function mapPool(items, limit, fn) {
+  const results = new Array(items.length);
+  let next = 0;
+  async function worker() {
+    while (next < items.length) {
+      const i = next++;
+      results[i] = await fn(items[i], i);
     }
   }
-  return { generatedAt: new Date().toISOString(), airports };
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, worker)
+  );
+  return results;
+}
+
+const SLICE_CONCURRENCY = 6;
+
+// Refresh one slice of the airport list — [offset, offset+limit). Returns a
+// map keyed by ICAO for just those airfields. 566 airfields can't be done in a
+// single 60s serverless call, so callers page through slices and merge.
+export async function refreshSlice(offset, limit) {
+  const slice = AIRPORTS.slice(offset, offset + limit);
+  const entries = await mapPool(slice, SLICE_CONCURRENCY, async (a) => {
+    try {
+      return [a.icao, await refreshAirport(a)];
+    } catch (e) {
+      return [a.icao, { status: 'error', places: [], error: String(e?.message || e) }];
+    }
+  });
+  return Object.fromEntries(entries);
 }
