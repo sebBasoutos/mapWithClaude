@@ -15,6 +15,7 @@ const AIRPORTS = [
   { icao: 'EGSU', name: 'Duxford (IWM)', lat: 52.0911, lng: 0.1314, runwayM: 1199, avgas: true, jet: true, customs: true, ifr: false },
   { icao: 'EGHJ', name: 'Bembridge (Isle of Wight)', lat: 50.6781, lng: -1.1094, runwayM: 827, avgas: false, jet: false, customs: false, ifr: false },
   { icao: 'EGHN', name: 'Sandown (Isle of Wight)', lat: 50.6531, lng: -1.1819, runwayM: 884, avgas: true, jet: false, customs: true, ifr: false },
+  { icao: 'LFIK', name: 'Ribérac - Saint-Aulaye', lat: 45.2394, lng: 0.2658, runwayM: 860, avgas: false, jet: false, customs: false, ifr: false },
 ];
 
 export default AIRPORTS;
